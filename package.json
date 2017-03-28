@@ -23,7 +23,10 @@
     "cordova-plugin-splashscreen",
     "cordova-plugin-background-mode",
     "cordova-plugin-nativeaudio",
-    "cordova-plugin-file"
+    "cordova-plugin-file",
+    "cordova-plugin-media",
+    "cordova-plugin-file-transfer",
+    "cordova-plugin-dialogs"
   ],
   "cordovaPlatforms": []
 }

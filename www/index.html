@@ -10,32 +10,86 @@
 
     <link href="css/style.css" rel="stylesheet">
 
+    <script src="lib/misc/underscore.js"></script>
+    <script src="lib/misc/jquery-2.1.4.min.js"></script>
+
     <!-- ionic/angularjs js -->
     <script src="lib/ionic/js/ionic.bundle.js"></script>
 
+    <script src="lib/ngCordova/ng-cordova.js"></script>
     <!-- cordova script (this will be a 404 during development) -->
     <script src="cordova.js"></script>
 
+    <!-- misc js -->
+    <script src="lib/misc/jquery.knob.js"></script>
+    <script src="lib/misc/angular-knob.js"></script>
+
     <!-- your app's js -->
     <script src="js/app.js"></script>
-</head>
-<body ng-controller="AudioController" class="platform-android">
+    <script src="js/artist.constant.js"></script>
+    <script src="js/tracks.constant.js"></script>
+    <script src="js/audio.controller.js"></script>
+    <script src="js/download.controller.js"></script>
+    <script src="js/audio.factory.js"></script>
+    <script src="js/storage.factory.js"></script>
 
-    <ion-pane>
-        <ion-header-bar class="bar-stable">
+    <script id="download-confirm.html" type="text/ng-template">
+        <ion-modal-view>
+            <ion-header-bar class="bar bar-header bar-positive">
+                <h1 class="title">Download tracks</h1>
+            </ion-header-bar>
+            <ion-content>
+                <div class="card">
+                    <div class="item item-text-wrap">
+                        Not all the tracks are available. You need to download the tracks.
+                    </div>
+                    <div class="button-bar">
+                        <a class="button button-clear button-positive" ng-click="closeDownloadModal()">Cancel</a>
+                        <a class="button button-positive" ng-click="downloadTracks()">Download</a>
+                    </div>
+                    <div class="item item-text-wrap">
+                        Downloading {{downloadProgress}}<br>
+                        <progress max="100" value="{{downloadProgress}}"> </progress>
+                    </div>
+                </div>
+            </ion-content>
+        </ion-modal-view>
+    </script>
+
+</head>
+<body class="platform-android dark-bg">
+
+    <!--<ion-pane>
+        <ion-header-bar class="bar bar-header bar-positive has-tabs-top">
             <h1 class="title">Quran Recite</h1>
         </ion-header-bar>
-        <ion-content>
-            <div class="list card" ng-repeat="audio in audioTracks">
+        <div class="tabs-striped tabs-top tabs-background-positive tabs-color-light">
+            <div class="tabs">
+                <a class="tab-item active" href="#">
+                    <i class="icon ion-home"></i>
+                    Test
+                </a>
+                <a class="tab-item" href="#">
+                    <i class="icon ion-star"></i>
+                    Favorites
+                </a>
+                <a class="tab-item" href="#">
+                    <i class="icon ion-gear-a"></i>
+                    Settings
+                </a>
+            </div>
+        </div>
+        <ion-content class="has-tabs">
+            <div class="list card" ng-repeat="track in tracks">
 
                 <div class="item item-avatar">
                     <img src="http://findicons.com/files/icons/2711/free_icons_for_windows8_metro/512/audio_wave.png">
-                    <h2>{{audio.title}}</h2>
-                    <p>{{audio.genre}}</p>
+                    <h2>{{track.id}}</h2>
+                    <p>{{track.fileName}}</p>
                 </div>
 
-                <div class="item tabs tabs-secondary tabs-icon-left">
-                    <a class="tab-item" href="#" ng-click="playTrack(audio.track, audio.key)">
+                <div class="item tabs tabs-secondary tabs-icon-left" ng-if="track.isAvailable">
+                    <a class="tab-item" href="#" ng-click="playTrack(track)">
                         <i class="icon ion-ios-play"></i>
                         Play
                     </a>
@@ -44,9 +98,128 @@
                         Stop
                     </a>
                 </div>
-
             </div>
         </ion-content>
-    </ion-pane>
+    </ion-pane>-->
+
+
+
+
+
+
+
+    <ion-nav-bar class="bar-positive has-tabs">
+        <ion-nav-back-button></ion-nav-back-button>
+    </ion-nav-bar>
+
+    <ion-nav-view></ion-nav-view>
+
+
+    <script id="templates/tabs.html" type="text/ng-template">
+        <ion-tabs class="tabs-icon-top tabs-positive tabs-top">
+
+            <ion-tab title="Recitals" icon="ion-music-note" href="#/tab/home">
+                <ion-nav-view name="home-tab"></ion-nav-view>
+            </ion-tab>
+
+            <ion-tab title="Download" icon="ion-android-download" ui-sref="tabs.download">
+                <ion-nav-view name="download-tab"></ion-nav-view>
+            </ion-tab>
+
+            <ion-tab title="About" icon="ion-ios-information" href="#/tab/about">
+                <ion-nav-view name="about-tab"></ion-nav-view>
+            </ion-tab>
+
+        </ion-tabs>
+    </script>
+
+    <script id="templates/home.html" type="text/ng-template">
+        <ion-view view-title="Quran Recite">
+            <ion-content>
+                <div class="list track-list">
+
+                    <div class="item item-button-right" ng-repeat="track in tracks track by track.id" ng-class="{'energized-bg1': currentTrack.id == track.id}">
+                        <!--<img src="http://findicons.com/files/icons/2711/free_icons_for_windows8_metro/512/audio_wave.png">-->
+                        <h2>
+                            <span style="float: right;">{{track.titleArabic}}</span>
+                            {{("00" + track.id).slice(-3)}}. {{track.title}}
+                        </h2>
+                        <!--<p>{{track.fileName}}</p>-->
+                        <!--<button class="button button-outline button-positive" ng-click="playTrack(track)" ng-if="currentTrack.id != track.id">
+                            <i class="icon ion-play"></i>
+                        </button>
+                        <button class="button button-outline button-positive" ng-click="stopTrack(track)" ng-if="currentTrack.id == track.id">
+                            <i class="icon ion-stop"></i>
+                        </button>-->
+                        <button class="button button-outline button-positive icon ion-play" ng-class="{'ion-play': currentTrack.id != track.id, 'ion-stop': currentTrack.id == track.id}" ng-click="toggleTrack(track)"></button>
+                    </div>
+
+
+
+                    <!--<div class="item tabs tabs-secondary tabs-icon-left" ng-if="track.isAvailable">
+                        <a class="tab-item" href="#" ng-click="playTrack(track)">
+                            <i class="icon ion-ios-play"></i>
+                            Play
+                        </a>
+                        <a class="tab-item" href="#" ng-click="stopTrack()">
+                            <i class="icon ion-android-checkbox-blank"></i>
+                            Stop
+                        </a>
+                    </div>-->
+                </div>
+                <br><br>
+            </ion-content>
+            <ion-content style="position: absolute; bottom: 0; top: auto;">
+
+                <div class="button-bar bar-assertive">
+                    <a class="button" ng-click="prevTrack()"><i class="icon ion-skip-backward"></i></a>
+                    <a class="button" ng-click="stopTrack()"><i class="icon ion-stop"></i></a>
+                    <a class="button" ng-click="nextTrack()"><i class="icon ion-skip-forward"></i></a>
+                </div>
+            </ion-content>
+        </ion-view>
+    </script>
+
+
+    <script id="templates/download.html" type="text/ng-template">
+        <ion-view title="Download Tracks">
+            <ion-content>
+                <div class="list card" ng-repeat="artist in artists" ng-if="!isDownloading">
+
+                    <div class="item item-body">
+                        <h2>{{artist.name}}</h2>
+                        <p>{{artist.bio}}</p>
+                        <a class="button button-full button-positive button-large" href="#" ng-click="downloadTracks(artist)">
+                            <i class="icon ion-android-download"></i> &nbsp; Download
+                        </a>
+                    </div>
+
+                </div>
+
+                <div class="card" ng-if="isDownloading">
+                    <div class="item item-text-wrap">
+                        Downloading tracks of Qari <strong>{{downloadingArtist.name}}.</strong>
+                    </div>
+                    <div class="item item-text-wrap">
+                        Downloading {{downloadProgress}}<br>
+                        <progress max="100" value="{{downloadProgress}}"> </progress>
+                    </div>
+                </div>
+            </ion-content>
+        </ion-view>
+    </script>
+
+    <script id="templates/about.html" type="text/ng-template">
+        <ion-view view-title="About">
+            <ion-content class="padding">
+                <div class="text-center">
+                    <img src="img/avatar.png" style="max-width: 80%;">
+                </div>
+                <h3>Hi there!</h3>
+                <p>I am Tarafder Ashek E Elahi, your neighborhood developer.</p>
+            </ion-content>
+        </ion-view>
+    </script>
+
 </body>
 </html>
