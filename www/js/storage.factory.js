@@ -1,4 +1,4 @@
-(function(){
+(function () {
 
     angular.module('starter').factory("StorageFactory", StorageFactory);
 
@@ -32,9 +32,9 @@
             });
         };
 
-        factory.getTracks = function(){
+        factory.getTracks = function () {
             var tracks = TRACKS;
-            _.each(tracks, function(track){
+            _.each(tracks, function (track) {
                 track.fileName = ("00" + track.id).slice(-3) + ".mp3";
                 track.isAvailable = false;
                 track.fullPath = resourceDir + track.fileName;
@@ -42,9 +42,9 @@
             return tracks;
         };
 
-        factory.getFiles = function(){
+        factory.getFiles = function () {
 
-            function checkFile(file){
+            function checkFile(file) {
                 return $cordovaFile.checkFile(resourceDir, file.fileName)
                     .then(function (success) {
                         // success
@@ -54,9 +54,10 @@
                         // error
                     });
             }
+
             var files = [];
             var track;
-            for(var i=100; i<=104; i++){
+            for (var i = 100; i <= 104; i++) {
                 track = {
                     id: i,
                     fileName: ("00" + i).slice(-3) + ".mp3",
@@ -65,20 +66,20 @@
                 files.push(track);
             }
 
-            return $q.all(files.map(checkFile)).then(function(results){
+            return $q.all(files.map(checkFile)).then(function (results) {
                 return files;
             })
         };
 
-        factory.isDownloadNeeded = function(tracks){
+        factory.isDownloadNeeded = function (tracks) {
             var isAvailable = false;
-            for(var i=0; i<tracks.length; i++){
+            for (var i = 0; i < tracks.length; i++) {
                 isAvailable = isAvailable || tracks[i].isAvailable;
             }
             return !isAvailable;
         };
 
-        factory.downloadTrack = function(path, track, progressCallback){
+        factory.downloadTrack = function (path, track, progressCallback) {
 
             var url = downloadUri + path + "/" + track.fileName;
             var targetPath = resourceDir + track.fileName;
@@ -89,7 +90,7 @@
 
         };
 
-        factory.getFreeDiskSpace = function(){
+        factory.getFreeDiskSpace = function () {
             return $cordovaFile.getFreeDiskSpace()
                 .then(function (success) {
                     // success in kilobytes
